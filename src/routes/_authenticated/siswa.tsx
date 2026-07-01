@@ -238,7 +238,7 @@ function KuisTab() {
                   <Button
                     size="sm"
                     onClick={() => {
-                      setActive({ id: a.id, title: a.title, questions: (a.questions as Question[]) ?? [] });
+                      setActive({ id: a.id, title: a.title, questions: (a.questions as unknown as Question[]) ?? [] });
                       setAnswers({});
                     }}
                   >
