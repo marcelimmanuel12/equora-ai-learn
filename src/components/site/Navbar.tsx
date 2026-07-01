@@ -47,12 +47,12 @@ export function Navbar() {
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
-          <a
-            href="#masuk"
+          <Link
+            to="/masuk"
             className="rounded-full border-2 border-primary px-5 py-2 font-semibold text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
           >
             Masuk
-          </a>
+          </Link>
           <a
             href="#harga"
             className="rounded-full bg-accent px-5 py-2 font-semibold text-accent-foreground shadow-soft transition-colors hover:bg-primary"
@@ -86,13 +86,13 @@ export function Navbar() {
               </a>
             ))}
             <div className="mt-2 grid grid-cols-2 gap-3">
-              <a
-                href="#masuk"
+              <Link
+                to="/masuk"
                 onClick={() => setOpen(false)}
                 className="rounded-full border-2 border-primary px-4 py-2.5 text-center font-semibold text-primary"
               >
                 Masuk
-              </a>
+              </Link>
               <a
                 href="#harga"
                 onClick={() => setOpen(false)}
