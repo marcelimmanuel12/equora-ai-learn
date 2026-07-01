@@ -86,13 +86,13 @@ export function Navbar() {
               </a>
             ))}
             <div className="mt-2 grid grid-cols-2 gap-3">
-              <a
-                href="#masuk"
+              <Link
+                to="/masuk"
                 onClick={() => setOpen(false)}
                 className="rounded-full border-2 border-primary px-4 py-2.5 text-center font-semibold text-primary"
               >
                 Masuk
-              </a>
+              </Link>
               <a
                 href="#harga"
                 onClick={() => setOpen(false)}
