@@ -53,6 +53,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid).maybeSingle(),
     ]);
+    // Blokir akun yang dinonaktifkan sekolah.
+    if (prof && (prof as Profile).is_active === false) {
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      setRole(null);
+      setSchool(null);
+      return;
+    }
     setProfile((prof as Profile) ?? null);
     setRole(((roleRow?.role as AppRole) ?? null));
     if (prof?.school_id) {
