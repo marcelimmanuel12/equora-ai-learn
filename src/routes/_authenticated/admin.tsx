@@ -188,8 +188,7 @@ function PenggunaTab() {
   const qc = useQueryClient();
   const users = useSchoolUsers(school?.id);
   const createFn = useServerFn(createSchoolUser);
-  const deleteFn = useServerFn(deleteSchoolUser);
-  const resetFn = useServerFn(resetUserPassword);
+  const activeFn = useServerFn(setUserActive);
 
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<Role>("siswa");
@@ -222,25 +221,15 @@ function PenggunaTab() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Gagal membuat akun."),
   });
 
-  const deleteMut = useMutation({
-    mutationFn: (userId: string) => deleteFn({ data: { userId } }),
-    onSuccess: () => {
-      toast.success("Akun dihapus.");
+  const activeMut = useMutation({
+    mutationFn: (v: { userId: string; active: boolean }) => activeFn({ data: v }),
+    onSuccess: (_d, v) => {
+      toast.success(v.active ? "Akun diaktifkan." : "Akun dinonaktifkan.");
       qc.invalidateQueries({ queryKey: ["school-users", school?.id] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Gagal menghapus akun."),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Gagal mengubah status akun."),
   });
 
-  async function handleReset(userId: string) {
-    const pw = window.prompt("Kata sandi baru (min. 6 karakter):");
-    if (!pw) return;
-    try {
-      await resetFn({ data: { userId, password: pw } });
-      toast.success("Kata sandi diperbarui.");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Gagal.");
-    }
-  }
 
   const rows = (users.data ?? []).filter((u) => (filter === "all" ? true : u.role === filter));
   const idPrefix = role === "admin" ? "NIA" : role === "guru" ? "NIG" : "NIS";
