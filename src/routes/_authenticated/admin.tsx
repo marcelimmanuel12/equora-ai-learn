@@ -333,22 +333,27 @@ function PenggunaTab() {
                 <TableRow key={u.id}>
                   <TableCell className="font-medium">{u.full_name}</TableCell>
                   <TableCell>{u.nomor_induk}</TableCell>
-                  <TableCell><Badge variant="secondary">{u.role ?? "-"}</Badge></TableCell>
+                  <TableCell className="space-x-2">
+                    <Badge variant="secondary">{u.role ?? "-"}</Badge>
+                    {!u.is_active && <Badge variant="outline" className="text-destructive">Nonaktif</Badge>}
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleReset(u.id)} aria-label="Reset kata sandi">
-                      <KeyRound className="h-4 w-4" aria-hidden />
-                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
-                        if (window.confirm(`Hapus akun ${u.full_name}?`)) deleteMut.mutate(u.id);
-                      }}
-                      aria-label="Hapus akun"
+                      disabled={activeMut.isPending}
+                      onClick={() => activeMut.mutate({ userId: u.id, active: !u.is_active })}
+                      aria-label={u.is_active ? "Nonaktifkan akun" : "Aktifkan akun"}
+                      title={u.is_active ? "Nonaktifkan akun" : "Aktifkan akun"}
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
+                      {u.is_active ? (
+                        <PowerOff className="h-4 w-4 text-destructive" aria-hidden />
+                      ) : (
+                        <Power className="h-4 w-4 text-primary" aria-hidden />
+                      )}
                     </Button>
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
