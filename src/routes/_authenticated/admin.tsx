@@ -72,11 +72,11 @@ function useSchoolUsers(schoolId?: string) {
     enabled: !!schoolId,
     queryFn: async (): Promise<UserRow[]> => {
       const [{ data: profiles }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, nomor_induk, disability").eq("school_id", schoolId!),
+        supabase.from("profiles").select("id, full_name, nomor_induk, disability, is_active").eq("school_id", schoolId!),
         supabase.from("user_roles").select("user_id, role").eq("school_id", schoolId!),
       ]);
       const roleMap = new Map((roles ?? []).map((r) => [r.user_id, r.role as Role]));
-      return (profiles ?? []).map((p) => ({ ...p, role: roleMap.get(p.id) ?? null }));
+      return (profiles ?? []).map((p) => ({ ...p, is_active: p.is_active ?? true, role: roleMap.get(p.id) ?? null }));
     },
   });
 }
