@@ -62,6 +62,7 @@ interface UserRow {
   full_name: string;
   nomor_induk: string;
   disability: string;
+  is_active: boolean;
   role: Role | null;
 }
 
