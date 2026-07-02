@@ -306,6 +306,7 @@ export type Database = {
           disability: Database["public"]["Enums"]["disability_type"]
           full_name: string
           id: string
+          is_active: boolean
           nomor_induk: string
           school_id: string
         }
@@ -315,6 +316,7 @@ export type Database = {
           disability?: Database["public"]["Enums"]["disability_type"]
           full_name: string
           id: string
+          is_active?: boolean
           nomor_induk: string
           school_id: string
         }
@@ -324,6 +326,7 @@ export type Database = {
           disability?: Database["public"]["Enums"]["disability_type"]
           full_name?: string
           id?: string
+          is_active?: boolean
           nomor_induk?: string
           school_id?: string
         }
@@ -469,6 +472,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_create_user: {
+        Args: {
+          p_disability?: Database["public"]["Enums"]["disability_type"]
+          p_full_name: string
+          p_nomor_induk: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      admin_set_user_active: {
+        Args: { p_active: boolean; p_user_id: string }
+        Returns: undefined
+      }
+      bootstrap_school: {
+        Args: {
+          p_admin_name: string
+          p_nomor_induk: string
+          p_school_name: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       current_school_id: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -478,6 +504,7 @@ export type Database = {
         Returns: boolean
       }
       is_enrolled: { Args: { _class_id: string }; Returns: boolean }
+      school_count: { Args: never; Returns: number }
       teaches_class: { Args: { _class_id: string }; Returns: boolean }
     }
     Enums: {
