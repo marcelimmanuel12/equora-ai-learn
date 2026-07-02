@@ -10,13 +10,14 @@ import {
   Layers,
   Plus,
   Trash2,
-  KeyRound,
+  Power,
+  PowerOff,
   Loader2,
   UserPlus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { createSchoolUser, deleteSchoolUser, resetUserPassword } from "@/lib/auth.functions";
+import { createSchoolUser, setUserActive } from "@/lib/auth.functions";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
