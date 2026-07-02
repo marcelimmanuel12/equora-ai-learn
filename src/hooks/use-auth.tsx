@@ -19,6 +19,7 @@ export interface Profile {
   full_name: string;
   disability: "none" | "tunarungu" | "tunawicara" | "tunanetra" | "buta_warna";
   avatar_url: string | null;
+  is_active: boolean;
 }
 
 export interface School {
