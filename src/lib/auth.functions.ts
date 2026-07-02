@@ -1,5 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const roleEnum = z.enum(["admin", "guru", "siswa"]);
@@ -17,8 +19,38 @@ export function emailFromNomorInduk(ni: string) {
 }
 
 /**
+ * Server-side publishable client (no session persistence). Used to create auth
+ * users via the standard sign-up flow — no service-role key required.
+ */
+function serverPublicClient() {
+  return createClient<Database>(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_PUBLISHABLE_KEY!,
+    { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
+  );
+}
+
+/** Create an auth user with Nomor Induk + password. Returns the new user id. */
+async function signUpUser(nomorInduk: string, password: string, fullName: string) {
+  const client = serverPublicClient();
+  const { data, error } = await client.auth.signUp({
+    email: emailFromNomorInduk(nomorInduk),
+    password,
+    options: { data: { full_name: fullName } },
+  });
+  if (error) {
+    const msg = /registered|already/i.test(error.message)
+      ? "Nomor Induk sudah digunakan."
+      : error.message;
+    throw new Error(msg);
+  }
+  if (!data.user) throw new Error("Gagal membuat akun. Coba lagi.");
+  return data.user.id;
+}
+
+/**
  * One-time bootstrap: creates the first School and its Admin (Sekolah) account.
- * Public endpoint, but refuses once any school already exists.
+ * Public endpoint, but the database function refuses once any school exists.
  */
 export const bootstrapSchool = createServerFn({ method: "POST" })
   .inputValidator((d) =>
@@ -32,11 +64,9 @@ export const bootstrapSchool = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const client = serverPublicClient();
 
-    const { count, error: countError } = await supabaseAdmin
-      .from("schools")
-      .select("*", { count: "exact", head: true });
+    const { data: count, error: countError } = await client.rpc("school_count");
     if (countError) throw new Error(countError.message);
     if ((count ?? 0) > 0) {
       throw new Error(
@@ -44,54 +74,23 @@ export const bootstrapSchool = createServerFn({ method: "POST" })
       );
     }
 
-    const { data: school, error: schoolError } = await supabaseAdmin
-      .from("schools")
-      .insert({ name: data.schoolName })
-      .select()
-      .single();
-    if (schoolError) throw new Error(schoolError.message);
+    const uid = await signUpUser(data.nia, data.password, data.adminName);
 
-    const { data: created, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: emailFromNomorInduk(data.nia),
-      password: data.password,
-      email_confirm: true,
-      user_metadata: { full_name: data.adminName },
+    const { error: rpcError } = await client.rpc("bootstrap_school", {
+      p_user_id: uid,
+      p_school_name: data.schoolName,
+      p_admin_name: data.adminName,
+      p_nomor_induk: data.nia.trim(),
     });
-    if (authError || !created.user) {
-      throw new Error(authError?.message ?? "Gagal membuat akun admin.");
-    }
-    const uid = created.user.id;
-
-    const { error: profileError } = await supabaseAdmin.from("profiles").insert({
-      id: uid,
-      school_id: school.id,
-      nomor_induk: data.nia.trim(),
-      full_name: data.adminName,
-    });
-    if (profileError) {
-      await supabaseAdmin.auth.admin.deleteUser(uid);
-      throw new Error(profileError.message);
-    }
-
-    const { error: roleError } = await supabaseAdmin.from("user_roles").insert({
-      user_id: uid,
-      role: "admin",
-      school_id: school.id,
-    });
-    if (roleError) {
-      await supabaseAdmin.auth.admin.deleteUser(uid);
-      throw new Error(roleError.message);
-    }
+    if (rpcError) throw new Error(rpcError.message);
 
     return { ok: true, nia: data.nia.trim() };
   });
 
 /** Whether the system still needs its first school (used by the setup screen). */
 export const needsBootstrap = createServerFn({ method: "GET" }).handler(async () => {
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { count } = await supabaseAdmin
-    .from("schools")
-    .select("*", { count: "exact", head: true });
+  const client = serverPublicClient();
+  const { data: count } = await client.rpc("school_count");
   return { needsBootstrap: (count ?? 0) === 0 };
 });
 
@@ -118,117 +117,44 @@ export const createSchoolUser = createServerFn({ method: "POST" })
     });
     if (!isAdmin) throw new Error("Hanya admin sekolah yang dapat membuat akun.");
 
-    const { data: me, error: meError } = await supabase
-      .from("profiles")
-      .select("school_id")
-      .eq("id", userId)
-      .single();
-    if (meError || !me) throw new Error("Profil admin tidak ditemukan.");
-    const schoolId = me.school_id;
+    // Create the auth account via standard sign-up (no service-role key needed).
+    const uid = await signUpUser(data.nomorInduk, data.password, data.fullName);
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: created, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: emailFromNomorInduk(data.nomorInduk),
-      password: data.password,
-      email_confirm: true,
-      user_metadata: { full_name: data.fullName },
+    // Provision profile + role in the admin's school via a SECURITY DEFINER RPC,
+    // executed as the signed-in admin.
+    const { error: rpcError } = await supabase.rpc("admin_create_user", {
+      p_user_id: uid,
+      p_full_name: data.fullName,
+      p_nomor_induk: data.nomorInduk.trim(),
+      p_role: data.role,
+      p_disability: data.disability,
     });
-    if (authError || !created.user) {
-      throw new Error(authError?.message ?? "Gagal membuat akun. Nomor induk mungkin sudah dipakai.");
-    }
-    const uid = created.user.id;
-
-    const { error: profileError } = await supabaseAdmin.from("profiles").insert({
-      id: uid,
-      school_id: schoolId,
-      nomor_induk: data.nomorInduk.trim(),
-      full_name: data.fullName,
-      disability: data.disability,
-    });
-    if (profileError) {
-      await supabaseAdmin.auth.admin.deleteUser(uid);
+    if (rpcError) {
       throw new Error(
-        profileError.message.includes("duplicate")
-          ? "Nomor induk sudah digunakan."
-          : profileError.message,
+        /duplicate|unique/i.test(rpcError.message)
+          ? "Nomor Induk sudah digunakan."
+          : rpcError.message,
       );
     }
 
-    const { error: roleError } = await supabaseAdmin.from("user_roles").insert({
-      user_id: uid,
-      role: data.role,
-      school_id: schoolId,
-    });
-    if (roleError) {
-      await supabaseAdmin.auth.admin.deleteUser(uid);
-      throw new Error(roleError.message);
-    }
-
     return { ok: true };
   });
 
-/** Admin-only: delete a user (and their auth account) within the admin's school. */
-export const deleteSchoolUser = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ userId: z.string().uuid() }).parse(d))
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    if (data.userId === userId) throw new Error("Anda tidak dapat menghapus akun sendiri.");
-
-    const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    if (!isAdmin) throw new Error("Hanya admin sekolah yang dapat menghapus akun.");
-
-    const { data: me } = await supabase
-      .from("profiles")
-      .select("school_id")
-      .eq("id", userId)
-      .single();
-    const { data: target } = await supabase
-      .from("profiles")
-      .select("school_id")
-      .eq("id", data.userId)
-      .single();
-    if (!me || !target || me.school_id !== target.school_id) {
-      throw new Error("Pengguna tidak ditemukan di sekolah Anda.");
-    }
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
-    if (error) throw new Error(error.message);
-    return { ok: true };
-  });
-
-/** Admin-only: reset a user's password. */
-export const resetUserPassword = createServerFn({ method: "POST" })
+/**
+ * Admin-only: activate/deactivate a user in the admin's school.
+ * Deactivation is used instead of deletion (removing an auth account requires
+ * privileged access that is not available here).
+ */
+export const setUserActive = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
-    z.object({ userId: z.string().uuid(), password: z.string().min(6).max(72) }).parse(d),
+    z.object({ userId: z.string().uuid(), active: z.boolean() }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-    const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    if (!isAdmin) throw new Error("Hanya admin yang dapat mengganti kata sandi.");
-
-    const { data: me } = await supabase.from("profiles").select("school_id").eq("id", userId).single();
-    const { data: target } = await supabase
-      .from("profiles")
-      .select("school_id")
-      .eq("id", data.userId)
-      .single();
-    if (!me || !target || me.school_id !== target.school_id) {
-      throw new Error("Pengguna tidak ditemukan di sekolah Anda.");
-    }
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.auth.admin.updateUserById(data.userId, {
-      password: data.password,
+    const { supabase } = context;
+    const { error } = await supabase.rpc("admin_set_user_active", {
+      p_user_id: data.userId,
+      p_active: data.active,
     });
     if (error) throw new Error(error.message);
     return { ok: true };
