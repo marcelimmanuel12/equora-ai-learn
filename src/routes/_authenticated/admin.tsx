@@ -10,13 +10,14 @@ import {
   Layers,
   Plus,
   Trash2,
-  KeyRound,
+  Power,
+  PowerOff,
   Loader2,
   UserPlus,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { createSchoolUser, deleteSchoolUser, resetUserPassword } from "@/lib/auth.functions";
+import { createSchoolUser, setUserActive } from "@/lib/auth.functions";
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,7 @@ interface UserRow {
   full_name: string;
   nomor_induk: string;
   disability: string;
+  is_active: boolean;
   role: Role | null;
 }
 
@@ -70,11 +72,11 @@ function useSchoolUsers(schoolId?: string) {
     enabled: !!schoolId,
     queryFn: async (): Promise<UserRow[]> => {
       const [{ data: profiles }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("id, full_name, nomor_induk, disability").eq("school_id", schoolId!),
+        supabase.from("profiles").select("id, full_name, nomor_induk, disability, is_active").eq("school_id", schoolId!),
         supabase.from("user_roles").select("user_id, role").eq("school_id", schoolId!),
       ]);
       const roleMap = new Map((roles ?? []).map((r) => [r.user_id, r.role as Role]));
-      return (profiles ?? []).map((p) => ({ ...p, role: roleMap.get(p.id) ?? null }));
+      return (profiles ?? []).map((p) => ({ ...p, is_active: p.is_active ?? true, role: roleMap.get(p.id) ?? null }));
     },
   });
 }
@@ -186,8 +188,7 @@ function PenggunaTab() {
   const qc = useQueryClient();
   const users = useSchoolUsers(school?.id);
   const createFn = useServerFn(createSchoolUser);
-  const deleteFn = useServerFn(deleteSchoolUser);
-  const resetFn = useServerFn(resetUserPassword);
+  const activeFn = useServerFn(setUserActive);
 
   const [open, setOpen] = useState(false);
   const [role, setRole] = useState<Role>("siswa");
@@ -220,25 +221,15 @@ function PenggunaTab() {
     onError: (e) => toast.error(e instanceof Error ? e.message : "Gagal membuat akun."),
   });
 
-  const deleteMut = useMutation({
-    mutationFn: (userId: string) => deleteFn({ data: { userId } }),
-    onSuccess: () => {
-      toast.success("Akun dihapus.");
+  const activeMut = useMutation({
+    mutationFn: (v: { userId: string; active: boolean }) => activeFn({ data: v }),
+    onSuccess: (_d, v) => {
+      toast.success(v.active ? "Akun diaktifkan." : "Akun dinonaktifkan.");
       qc.invalidateQueries({ queryKey: ["school-users", school?.id] });
     },
-    onError: (e) => toast.error(e instanceof Error ? e.message : "Gagal menghapus akun."),
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Gagal mengubah status akun."),
   });
 
-  async function handleReset(userId: string) {
-    const pw = window.prompt("Kata sandi baru (min. 6 karakter):");
-    if (!pw) return;
-    try {
-      await resetFn({ data: { userId, password: pw } });
-      toast.success("Kata sandi diperbarui.");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Gagal.");
-    }
-  }
 
   const rows = (users.data ?? []).filter((u) => (filter === "all" ? true : u.role === filter));
   const idPrefix = role === "admin" ? "NIA" : role === "guru" ? "NIG" : "NIS";
@@ -342,22 +333,27 @@ function PenggunaTab() {
                 <TableRow key={u.id}>
                   <TableCell className="font-medium">{u.full_name}</TableCell>
                   <TableCell>{u.nomor_induk}</TableCell>
-                  <TableCell><Badge variant="secondary">{u.role ?? "-"}</Badge></TableCell>
+                  <TableCell className="space-x-2">
+                    <Badge variant="secondary">{u.role ?? "-"}</Badge>
+                    {!u.is_active && <Badge variant="outline" className="text-destructive">Nonaktif</Badge>}
+                  </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleReset(u.id)} aria-label="Reset kata sandi">
-                      <KeyRound className="h-4 w-4" aria-hidden />
-                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => {
-                        if (window.confirm(`Hapus akun ${u.full_name}?`)) deleteMut.mutate(u.id);
-                      }}
-                      aria-label="Hapus akun"
+                      disabled={activeMut.isPending}
+                      onClick={() => activeMut.mutate({ userId: u.id, active: !u.is_active })}
+                      aria-label={u.is_active ? "Nonaktifkan akun" : "Aktifkan akun"}
+                      title={u.is_active ? "Nonaktifkan akun" : "Aktifkan akun"}
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" aria-hidden />
+                      {u.is_active ? (
+                        <PowerOff className="h-4 w-4 text-destructive" aria-hidden />
+                      ) : (
+                        <Power className="h-4 w-4 text-primary" aria-hidden />
+                      )}
                     </Button>
                   </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>

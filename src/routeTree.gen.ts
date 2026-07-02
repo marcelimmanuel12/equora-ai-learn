@@ -18,7 +18,6 @@ import { Route as AuthenticatedSiswaRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedGuruRouteImport } from './routes/_authenticated/guru'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as ApiPublicKeytestRouteImport } from './routes/api/public/keytest'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -64,11 +63,6 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ApiPublicKeytestRoute = ApiPublicKeytestRouteImport.update({
-  id: '/api/public/keytest',
-  path: '/api/public/keytest',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -79,7 +73,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/guru': typeof AuthenticatedGuruRoute
   '/siswa': typeof AuthenticatedSiswaRoute
-  '/api/public/keytest': typeof ApiPublicKeytestRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -90,7 +83,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/guru': typeof AuthenticatedGuruRoute
   '/siswa': typeof AuthenticatedSiswaRoute
-  '/api/public/keytest': typeof ApiPublicKeytestRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -103,7 +95,6 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/guru': typeof AuthenticatedGuruRoute
   '/_authenticated/siswa': typeof AuthenticatedSiswaRoute
-  '/api/public/keytest': typeof ApiPublicKeytestRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -116,7 +107,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/guru'
     | '/siswa'
-    | '/api/public/keytest'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -127,7 +117,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/guru'
     | '/siswa'
-    | '/api/public/keytest'
   id:
     | '__root__'
     | '/'
@@ -139,7 +128,6 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/guru'
     | '/_authenticated/siswa'
-    | '/api/public/keytest'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -148,7 +136,6 @@ export interface RootRouteChildren {
   MasukRoute: typeof MasukRoute
   SetupRoute: typeof SetupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  ApiPublicKeytestRoute: typeof ApiPublicKeytestRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -216,13 +203,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/keytest': {
-      id: '/api/public/keytest'
-      path: '/api/public/keytest'
-      fullPath: '/api/public/keytest'
-      preLoaderRoute: typeof ApiPublicKeytestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -249,8 +229,17 @@ const rootRouteChildren: RootRouteChildren = {
   MasukRoute: MasukRoute,
   SetupRoute: SetupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  ApiPublicKeytestRoute: ApiPublicKeytestRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
