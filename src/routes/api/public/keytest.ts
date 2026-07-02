@@ -7,25 +7,26 @@ export const Route = createFileRoute("/api/public/keytest")({
         const URL = process.env.SUPABASE_URL!;
         const K = process.env.SUPABASE_SERVICE_ROLE_KEY!;
         const out: Record<string, unknown> = {};
-        async function probe(name: string, headers: Record<string, string>) {
-          try {
-            const r = await fetch(URL + "/rest/v1/schools", {
-              method: "POST",
-              headers: {
-                ...headers,
-                "Content-Type": "application/json",
-                Prefer: "return=representation",
-              },
-              body: JSON.stringify({ name: "__probe_" + name }),
-            });
-            const body = await r.text();
-            out[name] = { status: r.status, body: body.slice(0, 200) };
-          } catch (e) {
-            out[name] = { error: e instanceof Error ? e.message : String(e) };
-          }
+        // Test GoTrue admin createUser
+        try {
+          const r = await fetch(URL + "/auth/v1/admin/users", {
+            method: "POST",
+            headers: {
+              apikey: K,
+              Authorization: "Bearer " + K,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: "__probe_" + Date.now() + "@equora.local",
+              password: "probe123456",
+              email_confirm: true,
+            }),
+          });
+          const body = await r.text();
+          out.gotrue_admin = { status: r.status, body: body.slice(0, 300) };
+        } catch (e) {
+          out.gotrue_admin = { error: e instanceof Error ? e.message : String(e) };
         }
-        await probe("apikey_only", { apikey: K });
-        await probe("apikey_bearer", { apikey: K, Authorization: "Bearer " + K });
         return new Response(JSON.stringify(out, null, 2), {
           headers: { "content-type": "application/json" },
         });
