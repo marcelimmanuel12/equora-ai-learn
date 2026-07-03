@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Moon, Sun, Contrast, Eye, Type, Check } from "lucide-react";
+import { Moon, Sun, Contrast, Eye, Type, Check, Volume2, Square, Mic, MicOff } from "lucide-react";
+import { useTextToSpeech, useSpeechToText, insertTextIntoActiveElement } from "@/hooks/use-speech";
+import { toast } from "sonner";
 
 type TextScale = "base" | "lg" | "xl";
 
@@ -25,6 +27,34 @@ function applyState(s: A11yState) {
 export function AccessibilityToolbar() {
   const [state, setState] = useState<A11yState>(defaultState);
   const [ready, setReady] = useState(false);
+  const tts = useTextToSpeech();
+  const stt = useSpeechToText((text) => {
+    if (!insertTextIntoActiveElement(text)) {
+      toast.info("Klik dulu kolom teks yang ingin diisi, lalu bicara.");
+    }
+  });
+
+  function readPage() {
+    if (tts.speaking) {
+      tts.cancel();
+      return;
+    }
+    const main = document.getElementById("main-content") ?? document.body;
+    const text = (main as HTMLElement).innerText;
+    if (!text.trim()) return;
+    tts.speak(text);
+  }
+
+  function toggleDictation() {
+    if (stt.listening) {
+      stt.stop();
+    } else {
+      stt.start();
+      toast.info("Dikte aktif. Fokuskan kursor ke kolom teks lalu bicara.");
+    }
+  }
+
+
 
   useEffect(() => {
     let next = defaultState;
@@ -94,6 +124,29 @@ export function AccessibilityToolbar() {
             label={state.dark ? "Mode Terang" : "Mode Gelap"}
             pressed={state.dark}
           />
+          {tts.supported && (
+            <ToolbarButton
+              onClick={readPage}
+              active={tts.speaking}
+              pressed={tts.speaking}
+              icon={
+                tts.speaking ? <Square className="size-4" aria-hidden /> : <Volume2 className="size-4" aria-hidden />
+              }
+              label={tts.speaking ? "Hentikan" : "Baca Halaman"}
+            />
+          )}
+          {stt.supported && (
+            <ToolbarButton
+              onClick={toggleDictation}
+              active={stt.listening}
+              pressed={stt.listening}
+              icon={
+                stt.listening ? <MicOff className="size-4" aria-hidden /> : <Mic className="size-4" aria-hidden />
+              }
+              label={stt.listening ? "Stop Dikte" : "Dikte Suara"}
+            />
+          )}
+
         </div>
         <p className="hidden text-xs text-primary-foreground/80 md:block">
           {ready ? "Preferensi tersimpan otomatis · WCAG 2.1 AA" : "Memuat pengaturan…"}
