@@ -43,6 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ChatBotView } from "@/components/chat/ChatBotView";
 
 export const Route = createFileRoute("/_authenticated/siswa")({
   head: () => ({ meta: [{ title: "Dashboard Siswa — Equora" }] }),
@@ -812,19 +813,7 @@ function GameTab() {
 }
 
 function ChatbotTab() {
-  return (
-    <ComingSoon
-      icon={Bot}
-      title="AI Chatbot Belajar"
-      desc="Asisten AI yang siap membantu memahami materi kapan saja."
-      features={[
-        { icon: MessagesSquare, text: "Menjawab pertanyaan & menjelaskan materi" },
-        { icon: FileText, text: "Membuat ringkasan & contoh soal" },
-        { icon: Hand, text: "Menerjemahkan BISINDO menjadi teks" },
-        { icon: Sparkles, text: "Rekomendasi materi lanjutan" },
-      ]}
-    />
-  );
+  return <ChatBotView audience="siswa" />;
 }
 
 /* ------------------------------------------------------------------ */

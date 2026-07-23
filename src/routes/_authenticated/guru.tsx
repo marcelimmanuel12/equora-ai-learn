@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ChatBotView } from "@/components/chat/ChatBotView";
 
 export const Route = createFileRoute("/_authenticated/guru")({
   head: () => ({ meta: [{ title: "Dashboard Guru — Equora" }] }),
@@ -56,12 +57,14 @@ function GuruContent() {
         <TabsTrigger value="materi">Materi</TabsTrigger>
         <TabsTrigger value="penilaian">Penilaian</TabsTrigger>
         <TabsTrigger value="nilai">Nilai Siswa</TabsTrigger>
-        <TabsTrigger value="alat">AI &amp; Meeting</TabsTrigger>
+        <TabsTrigger value="chatbot">AI Chatbot</TabsTrigger>
+        <TabsTrigger value="alat">Alat Lain</TabsTrigger>
       </TabsList>
       <TabsContent value="kelas"><KelasSayaTab /></TabsContent>
       <TabsContent value="materi"><MateriTab /></TabsContent>
       <TabsContent value="penilaian"><PenilaianTab /></TabsContent>
       <TabsContent value="nilai"><NilaiTab /></TabsContent>
+      <TabsContent value="chatbot"><ChatBotView audience="guru" /></TabsContent>
       <TabsContent value="alat"><AlatTab /></TabsContent>
     </Tabs>
   );
