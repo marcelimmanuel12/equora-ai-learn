@@ -56,12 +56,14 @@ function GuruContent() {
         <TabsTrigger value="materi">Materi</TabsTrigger>
         <TabsTrigger value="penilaian">Penilaian</TabsTrigger>
         <TabsTrigger value="nilai">Nilai Siswa</TabsTrigger>
-        <TabsTrigger value="alat">AI &amp; Meeting</TabsTrigger>
+        <TabsTrigger value="chatbot">AI Chatbot</TabsTrigger>
+        <TabsTrigger value="alat">Alat Lain</TabsTrigger>
       </TabsList>
       <TabsContent value="kelas"><KelasSayaTab /></TabsContent>
       <TabsContent value="materi"><MateriTab /></TabsContent>
       <TabsContent value="penilaian"><PenilaianTab /></TabsContent>
       <TabsContent value="nilai"><NilaiTab /></TabsContent>
+      <TabsContent value="chatbot"><ChatBotView audience="guru" /></TabsContent>
       <TabsContent value="alat"><AlatTab /></TabsContent>
     </Tabs>
   );
