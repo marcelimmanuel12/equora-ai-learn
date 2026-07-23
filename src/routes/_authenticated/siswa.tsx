@@ -813,19 +813,7 @@ function GameTab() {
 }
 
 function ChatbotTab() {
-  return (
-    <ComingSoon
-      icon={Bot}
-      title="AI Chatbot Belajar"
-      desc="Asisten AI yang siap membantu memahami materi kapan saja."
-      features={[
-        { icon: MessagesSquare, text: "Menjawab pertanyaan & menjelaskan materi" },
-        { icon: FileText, text: "Membuat ringkasan & contoh soal" },
-        { icon: Hand, text: "Menerjemahkan BISINDO menjadi teks" },
-        { icon: Sparkles, text: "Rekomendasi materi lanjutan" },
-      ]}
-    />
-  );
+  return <ChatBotView audience="siswa" />;
 }
 
 /* ------------------------------------------------------------------ */
