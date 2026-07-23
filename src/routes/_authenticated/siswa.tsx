@@ -43,6 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ChatBotView } from "@/components/chat/ChatBotView";
 
 export const Route = createFileRoute("/_authenticated/siswa")({
   head: () => ({ meta: [{ title: "Dashboard Siswa — Equora" }] }),
