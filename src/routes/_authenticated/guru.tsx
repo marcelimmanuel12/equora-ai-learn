@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { ChatBotView } from "@/components/chat/ChatBotView";
 
 export const Route = createFileRoute("/_authenticated/guru")({
   head: () => ({ meta: [{ title: "Dashboard Guru — Equora" }] }),
