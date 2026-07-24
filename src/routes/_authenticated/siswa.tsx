@@ -44,6 +44,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ChatBotView } from "@/components/chat/ChatBotView";
+import { MeetingLobbySiswa } from "@/components/meeting/MeetingLobby";
 
 export const Route = createFileRoute("/_authenticated/siswa")({
   head: () => ({ meta: [{ title: "Dashboard Siswa — Equora" }] }),
@@ -781,19 +782,7 @@ function ProfilTab() {
 /* Coming-soon placeholders                                            */
 /* ------------------------------------------------------------------ */
 function MeetingTab() {
-  return (
-    <ComingSoon
-      icon={Video}
-      title="Kelas Daring (Meeting)"
-      desc="Ikuti kelas daring langsung dari Equora tanpa aplikasi tambahan."
-      features={[
-        { icon: Video, text: "Video & Voice Call" },
-        { icon: MessagesSquare, text: "Chat & Raise Hand" },
-        { icon: Presentation, text: "Screen Sharing & Whiteboard" },
-        { icon: Hand, text: "Live Caption & Penerjemah BISINDO" },
-      ]}
-    />
-  );
+  return <MeetingLobbySiswa />;
 }
 
 function GameTab() {
