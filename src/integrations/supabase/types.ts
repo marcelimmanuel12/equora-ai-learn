@@ -355,6 +355,56 @@ export type Database = {
           },
         ]
       }
+      meetings: {
+        Row: {
+          class_id: string
+          code: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          is_active: boolean
+          school_id: string
+          started_at: string
+          teacher_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          class_id: string
+          code: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          school_id: string
+          started_at?: string
+          teacher_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          class_id?: string
+          code?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          school_id?: string
+          started_at?: string
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
