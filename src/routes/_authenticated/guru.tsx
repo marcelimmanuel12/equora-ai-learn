@@ -467,7 +467,6 @@ function NilaiTab() {
 function AlatTab() {
   const tools = [
     { icon: Sparkles, title: "AI Pembuat Materi & Soal", desc: "Bantu membuat materi, soal, dan presentasi otomatis." },
-    { icon: Video, title: "Meeting Kelas Online", desc: "Adakan kelas langsung dengan siswa." },
   ];
   return (
     <div className="grid gap-4 sm:grid-cols-2">
