@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+
 import {
   Hand,
   Volume2,
@@ -18,6 +20,8 @@ import {
 import heroDashboard from "@/assets/hero-dashboard.jpg";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
+import { CheckoutDialog, type CheckoutPlan } from "@/components/site/CheckoutDialog";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -158,6 +162,8 @@ const plans = [
 ];
 
 function LandingPage() {
+  const [checkoutPlan, setCheckoutPlan] = useState<CheckoutPlan | null>(null);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
@@ -398,16 +404,20 @@ function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <a
-                    href="#masuk"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCheckoutPlan({ name: p.name, price: p.price, grades: p.grades })
+                    }
                     className={`mt-8 rounded-xl px-6 py-3 text-center font-bold transition-colors ${
                       p.popular
                         ? "bg-primary text-primary-foreground hover:bg-accent"
                         : "border border-border bg-surface text-foreground hover:bg-muted"
                     }`}
                   >
-                    {p.popular ? "Pilih Paket" : "Hubungi Sales"}
-                  </a>
+                    Pilih Paket
+                  </button>
+
                 </div>
               ))}
             </div>
@@ -448,7 +458,14 @@ function LandingPage() {
         </section>
       </main>
 
+      <CheckoutDialog
+        plan={checkoutPlan}
+        open={checkoutPlan !== null}
+        onOpenChange={(v) => !v && setCheckoutPlan(null)}
+      />
+
       <Footer />
     </div>
+
   );
 }
