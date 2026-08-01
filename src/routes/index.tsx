@@ -464,11 +464,16 @@ function LandingPage() {
         </section>
       </main>
 
-      <CheckoutDialog
-        plan={checkoutPlan}
-        open={checkoutPlan !== null}
-        onOpenChange={(v) => !v && setCheckoutPlan(null)}
-      />
+      {checkoutPlan && (
+        <Suspense fallback={null}>
+          <CheckoutDialog
+            plan={checkoutPlan}
+            open
+            onOpenChange={(v: boolean) => !v && setCheckoutPlan(null)}
+          />
+        </Suspense>
+      )}
+
 
       <Footer />
     </div>
