@@ -20,6 +20,8 @@ import {
 import heroDashboard from "@/assets/hero-dashboard.jpg";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
+import { CheckoutDialog, type CheckoutPlan } from "@/components/site/CheckoutDialog";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
