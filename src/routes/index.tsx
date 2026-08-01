@@ -20,8 +20,12 @@ import {
 import heroDashboard from "@/assets/hero-dashboard.jpg";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
-import { CheckoutDialog, type CheckoutPlan } from "@/components/site/CheckoutDialog";
+import type { CheckoutPlan } from "@/components/site/CheckoutDialog";
 
+// Dialog pembayaran hanya dimuat saat dibutuhkan agar bundle landing tetap ringan.
+const CheckoutDialog = lazy(() =>
+  import("@/components/site/CheckoutDialog").then((m) => ({ default: m.CheckoutDialog })),
+);
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,7 +45,9 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "preload", as: "image", href: heroDashboard, fetchpriority: "high" }],
   }),
+
   component: LandingPage,
 });
 
