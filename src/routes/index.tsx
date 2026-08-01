@@ -228,7 +228,6 @@ function LandingPage() {
                 width={1280}
                 height={960}
                 loading="eager"
-                fetchPriority="high"
                 decoding="async"
                 alt="Antarmuka dashboard Equora menampilkan pelajaran dengan jendela bahasa isyarat AI, caption langsung, dan panel kontrol aksesibilitas."
                 className="w-full rounded-3xl border border-border shadow-elevated"
