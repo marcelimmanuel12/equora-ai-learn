@@ -158,6 +158,8 @@ const plans = [
 ];
 
 function LandingPage() {
+  const [checkoutPlan, setCheckoutPlan] = useState<CheckoutPlan | null>(null);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
