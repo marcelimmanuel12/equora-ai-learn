@@ -404,16 +404,20 @@ function LandingPage() {
                       </li>
                     ))}
                   </ul>
-                  <a
-                    href="#masuk"
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCheckoutPlan({ name: p.name, price: p.price, grades: p.grades })
+                    }
                     className={`mt-8 rounded-xl px-6 py-3 text-center font-bold transition-colors ${
                       p.popular
                         ? "bg-primary text-primary-foreground hover:bg-accent"
                         : "border border-border bg-surface text-foreground hover:bg-muted"
                     }`}
                   >
-                    {p.popular ? "Pilih Paket" : "Hubungi Sales"}
-                  </a>
+                    Pilih Paket
+                  </button>
+
                 </div>
               ))}
             </div>
