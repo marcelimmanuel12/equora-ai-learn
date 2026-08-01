@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 
 import {
@@ -20,8 +20,12 @@ import {
 import heroDashboard from "@/assets/hero-dashboard.jpg";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
-import { CheckoutDialog, type CheckoutPlan } from "@/components/site/CheckoutDialog";
+import type { CheckoutPlan } from "@/components/site/CheckoutDialog";
 
+// Dialog pembayaran hanya dimuat saat dibutuhkan agar bundle landing tetap ringan.
+const CheckoutDialog = lazy(() =>
+  import("@/components/site/CheckoutDialog").then((m) => ({ default: m.CheckoutDialog })),
+);
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -41,7 +45,9 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "preload", as: "image", href: heroDashboard }],
   }),
+
   component: LandingPage,
 });
 
@@ -221,9 +227,12 @@ function LandingPage() {
                 src={heroDashboard}
                 width={1280}
                 height={960}
+                loading="eager"
+                decoding="async"
                 alt="Antarmuka dashboard Equora menampilkan pelajaran dengan jendela bahasa isyarat AI, caption langsung, dan panel kontrol aksesibilitas."
                 className="w-full rounded-3xl border border-border shadow-elevated"
               />
+
               <div className="absolute -bottom-5 -left-3 flex items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-elevated sm:-left-6">
                 <span className="grid size-12 shrink-0 place-items-center rounded-full bg-success font-bold text-success-foreground">
                   98%
@@ -458,11 +467,16 @@ function LandingPage() {
         </section>
       </main>
 
-      <CheckoutDialog
-        plan={checkoutPlan}
-        open={checkoutPlan !== null}
-        onOpenChange={(v) => !v && setCheckoutPlan(null)}
-      />
+      {checkoutPlan && (
+        <Suspense fallback={null}>
+          <CheckoutDialog
+            plan={checkoutPlan}
+            open
+            onOpenChange={(v: boolean) => !v && setCheckoutPlan(null)}
+          />
+        </Suspense>
+      )}
+
 
       <Footer />
     </div>
