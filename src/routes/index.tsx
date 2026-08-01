@@ -45,7 +45,7 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "preload", as: "image", href: heroDashboard, fetchPriority: "high" }],
+    links: [{ rel: "preload", as: "image", href: heroDashboard }],
   }),
 
   component: LandingPage,
