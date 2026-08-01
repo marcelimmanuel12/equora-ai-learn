@@ -91,7 +91,11 @@ export function useTextToSpeech() {
 /* Speech-to-Text                                                      */
 /* ------------------------------------------------------------------ */
 export function useSpeechToText(onFinal?: (text: string) => void) {
-  const [supported] = useState(() => getRecognitionCtor() !== null);
+  const [supported, setSupported] = useState(false);
+  useEffect(() => {
+    setSupported(getRecognitionCtor() !== null);
+  }, []);
+
   const [listening, setListening] = useState(false);
   const recRef = useRef<SpeechRecognitionLike | null>(null);
   const finalCb = useRef(onFinal);
