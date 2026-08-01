@@ -458,7 +458,14 @@ function LandingPage() {
         </section>
       </main>
 
+      <CheckoutDialog
+        plan={checkoutPlan}
+        open={checkoutPlan !== null}
+        onOpenChange={(v) => !v && setCheckoutPlan(null)}
+      />
+
       <Footer />
     </div>
+
   );
 }
