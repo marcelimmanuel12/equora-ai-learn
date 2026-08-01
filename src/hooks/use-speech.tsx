@@ -37,14 +37,10 @@ function getRecognitionCtor(): SpeechRecognitionCtor | null {
 /* Text-to-Speech                                                      */
 /* ------------------------------------------------------------------ */
 export function useTextToSpeech() {
-  // Deteksi dukungan harus jalan setelah hydration (SSR tidak punya window),
-  // kalau tidak tombol TTS akan hilang selamanya di klien.
-  const [supported, setSupported] = useState(false);
-  useEffect(() => {
-    setSupported("speechSynthesis" in window);
-  }, []);
+  const [supported] = useState(
+    () => typeof window !== "undefined" && "speechSynthesis" in window,
+  );
   const [speaking, setSpeaking] = useState(false);
-
 
   const cancel = useCallback(() => {
     if (!supported) return;
@@ -91,11 +87,7 @@ export function useTextToSpeech() {
 /* Speech-to-Text                                                      */
 /* ------------------------------------------------------------------ */
 export function useSpeechToText(onFinal?: (text: string) => void) {
-  const [supported, setSupported] = useState(false);
-  useEffect(() => {
-    setSupported(getRecognitionCtor() !== null);
-  }, []);
-
+  const [supported] = useState(() => getRecognitionCtor() !== null);
   const [listening, setListening] = useState(false);
   const recRef = useRef<SpeechRecognitionLike | null>(null);
   const finalCb = useRef(onFinal);
